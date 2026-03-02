@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cloudvault
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - configmap.yaml
+  - postgres.yaml      # PostgreSQL database (RWO PVC)
+  - deployment.yaml    # Stateless app (no PVC needed)
+  - service.yaml
+  - hpa.yaml           # Horizontal Pod Autoscaler
+
+commonLabels:
+  app.kubernetes.io/version: "1.0.0"
+  app.kubernetes.io/managed-by: kustomize

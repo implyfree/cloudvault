@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudvault-config
+  namespace: cloudvault
+  labels:
+    app.kubernetes.io/name: cloudvault
+data:
+  # Application configuration
+  # Add any non-sensitive configuration here
+  NODE_ENV: "production"

@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloudvault.fullname" . }}
+  labels:
+    {{- include "cloudvault.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "cloudvault.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "cloudvault.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "cloudvault.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # Wait for PostgreSQL to be available before starting
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL at {{ include "cloudvault.postgresql.host" . }}:{{ include "cloudvault.postgresql.port" . }}..."
+              until nc -z {{ include "cloudvault.postgresql.host" . }} {{ include "cloudvault.postgresql.port" . }}; do
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+        # Run database migrations (CREATE TABLE IF NOT EXISTS is idempotent — safe for concurrent pods)
+        - name: db-migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - node
+            - -e
+            - |
+              import('./server/db.js').then(m => m.initDb()).then(() => {
+                console.log('Database migration completed');
+                process.exit(0);
+              }).catch(err => {
+                console.error('Migration failed:', err.message);
+                process.exit(1);
+              });
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DB_SSL
+              value: "false"
+            - name: PGHOST
+              value: {{ include "cloudvault.postgresql.host" . | quote }}
+            - name: PGPORT
+              value: {{ include "cloudvault.postgresql.port" . | quote }}
+            - name: PGDATABASE
+              value: {{ include "cloudvault.postgresql.database" . | quote }}
+            - name: PGUSER
+              value: {{ include "cloudvault.postgresql.username" . | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.postgresql.secretName" . }}
+                  key: {{ include "cloudvault.postgresql.passwordKey" . }}
+            - name: DATABASE_URL
+              value: "postgresql://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.fullname" . }}
+                  key: JWT_SECRET
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.fullname" . }}
+                  key: ENCRYPTION_KEY
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.fullname" . }}
+                  key: ADMIN_PASSWORD
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3001
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3001"
+            # Disable SSL for internal PostgreSQL connection
+            - name: DB_SSL
+              value: "false"
+            # Database connection
+            - name: PGHOST
+              value: {{ include "cloudvault.postgresql.host" . | quote }}
+            - name: PGPORT
+              value: {{ include "cloudvault.postgresql.port" . | quote }}
+            - name: PGDATABASE
+              value: {{ include "cloudvault.postgresql.database" . | quote }}
+            - name: PGUSER
+              value: {{ include "cloudvault.postgresql.username" . | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.postgresql.secretName" . }}
+                  key: {{ include "cloudvault.postgresql.passwordKey" . }}
+            - name: DATABASE_URL
+              value: "postgresql://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)"
+            # App secrets
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.fullname" . }}
+                  key: JWT_SECRET
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.fullname" . }}
+                  key: ENCRYPTION_KEY
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cloudvault.fullname" . }}
+                  key: ADMIN_PASSWORD
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

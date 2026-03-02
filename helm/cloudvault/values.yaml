@@ -1,0 +1,203 @@
+# CloudVault Helm Chart Values
+# Default configuration for cloudvault deployment
+
+# Global settings
+global:
+  security:
+    allowInsecureImages: true
+
+# Number of replicas
+replicaCount: 2
+
+image:
+  repository: shyamkrishna21/cloudvault
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets (if using private registry)
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3001
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: cloudvault.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: cloudvault-tls
+  #    hosts:
+  #      - cloudvault.local
+
+# Resource limits
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Topology spread (spread pods across nodes)
+topologySpreadConstraints: []
+
+# =====================
+# Application Settings
+# =====================
+app:
+  # Initial admin credentials (only used on first startup)
+  adminUsername: admin
+  adminPassword: admin
+  
+  # JWT secret for session tokens (auto-generated if empty)
+  # IMPORTANT: Set a fixed value for production to persist sessions across restarts
+  jwtSecret: ""
+  
+  # Encryption key for cloud credentials (auto-generated if empty)
+  # IMPORTANT: Set a fixed 64-char hex string for production!
+  # Generate with: openssl rand -hex 32
+  # If not set, a random key is generated on each deploy, breaking existing encrypted data!
+  encryptionKey: ""
+
+# =====================
+# PostgreSQL Settings (Bitnami)
+# =====================
+postgresql:
+  enabled: true
+  
+  # Use bitnami legacy image
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: "17.6.0-debian-12-r4"
+  
+  # Authentication
+  auth:
+    username: cloudvault
+    password: cloudvault-db-password
+    database: cloudvault
+  
+  # Primary configuration
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
+      # storageClass: ""
+    
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+  
+  # Disable replication for simplicity (enable for HA)
+  architecture: standalone
+  
+  # Metrics (optional)
+  metrics:
+    enabled: false
+
+# External database (if postgresql.enabled is false)
+externalDatabase:
+  host: ""
+  port: 5432
+  username: cloudvault
+  password: ""
+  database: cloudvault
+  # Existing secret with DATABASE_URL
+  existingSecret: ""
+  existingSecretKey: "DATABASE_URL"
+
+# Probes
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# =====================
+# GKE Gateway API Configuration
+# =====================
+gateway:
+  enabled: false
+  # Gateway class name (GKE managed)
+  className: gke-l7-global-external-managed
+  # Hostname for the application
+  hostname: cloudvault.example.com
+  # TLS certificate secret name (must exist in the same namespace)
+  tlsSecretName: cloudvault-tls
+  # Backend timeout in seconds
+  timeoutSec: 300

@@ -1,0 +1,47 @@
+🚀 CloudVault has been deployed!
+
+{{- if .Values.ingress.enabled }}
+Access the application at:
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+Get the application URL by running:
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "cloudvault.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+Get the application URL by running:
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "cloudvault.fullname" . }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+Access the application by running:
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "cloudvault.fullname" . }} 8080:{{ .Values.service.port }}
+  
+Then open: http://localhost:8080
+{{- end }}
+
+📝 Default Login Credentials:
+   Username: {{ .Values.app.adminUsername }}
+   Password: {{ .Values.app.adminPassword }}
+
+⚠️  IMPORTANT: Change the admin password after first login!
+
+📦 Next Steps:
+1. Login to the admin panel
+2. Go to Admin → Providers
+3. Add your cloud storage providers (GCP, AWS, Azure, etc.)
+4. Create users and assign them to providers/buckets
+
+{{- if .Values.postgresql.enabled }}
+
+🗄️  PostgreSQL:
+   Host: {{ include "cloudvault.postgresql.host" . }}
+   Port: {{ include "cloudvault.postgresql.port" . }}
+   Database: {{ include "cloudvault.postgresql.database" . }}
+   Username: {{ include "cloudvault.postgresql.username" . }}
+{{- end }}
+
+For more information, visit: https://hub.docker.com/r/shyamkrishna21/cloudvault

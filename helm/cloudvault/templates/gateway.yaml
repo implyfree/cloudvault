@@ -1,0 +1,94 @@
+{{- if .Values.gateway.enabled }}
+# =========================================================
+# GATEWAY
+# =========================================================
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "cloudvault.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudvault.labels" . | nindent 4 }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className }}
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: {{ .Values.gateway.tlsSecretName }}
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+# =========================================================
+# HTTP ROUTE
+# =========================================================
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "cloudvault.fullname" . }}-route
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudvault.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+  - name: {{ include "cloudvault.fullname" . }}-gateway
+
+  hostnames:
+  - {{ .Values.gateway.hostname }}
+
+  rules:
+  # All traffic -> CloudVault
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: {{ include "cloudvault.fullname" . }}
+      port: {{ .Values.service.port }}
+---
+# =========================================================
+# HEALTH CHECK POLICY
+# =========================================================
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: {{ include "cloudvault.fullname" . }}-health-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudvault.labels" . | nindent 4 }}
+spec:
+  default:
+    config:
+      type: HTTP
+      httpHealthCheck:
+        requestPath: /api/health
+        port: {{ .Values.service.targetPort }}
+        portSpecification: USE_FIXED_PORT
+  targetRef:
+    group: ""
+    kind: Service
+    name: {{ include "cloudvault.fullname" . }}
+---
+# =========================================================
+# BACKEND TIMEOUT POLICY
+# =========================================================
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: {{ include "cloudvault.fullname" . }}-backend-timeout
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudvault.labels" . | nindent 4 }}
+spec:
+  default:
+    timeoutSec: {{ .Values.gateway.timeoutSec }}
+  targetRef:
+    group: ""
+    kind: Service
+    name: {{ include "cloudvault.fullname" . }}
+{{- end }}

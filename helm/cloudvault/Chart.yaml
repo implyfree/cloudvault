@@ -1,0 +1,24 @@
+apiVersion: v2
+name: cloudvault
+description: Multi-cloud storage uploader with admin-controlled access management
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - cloud-storage
+  - file-upload
+  - gcp
+  - aws
+  - azure
+  - s3
+maintainers:
+  - name: shyamkrishna21
+home: https://github.com/shyamkrishna21/cloudvault
+sources:
+  - https://github.com/shyamkrishna21/cloudvault
+
+dependencies:
+  - name: postgresql
+    version: "16.4.1"
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    condition: postgresql.enabled

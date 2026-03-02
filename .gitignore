@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (secrets!)
+.env
+.env.*
+!.env.example
+
+# GCP/cloud credentials
+gcp-key.json
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Helm chart dependencies (downloaded tgz)
+helm/cloudvault/charts/*.tgz
+
+# Helm packages (generated)
+helm/packages/
+
+# Data directory (local SQLite or uploads)
+data/
+
+# Logs
+*.log
+.vite/

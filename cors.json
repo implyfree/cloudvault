@@ -1,0 +1,10 @@
+[
+  {
+    "origin": ["*"],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+    "responseHeader": [
+      "*"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

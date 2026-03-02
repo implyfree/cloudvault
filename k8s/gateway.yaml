@@ -1,0 +1,84 @@
+# =========================================================
+# GATEWAY - CloudVault
+# =========================================================
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: cloudvault-gateway
+  namespace: cloudvault
+spec:
+  gatewayClassName: gke-l7-global-external-managed
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: star-digital-tls
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+# =========================================================
+# HTTP ROUTE - CloudVault
+# =========================================================
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cloudvault-route
+  namespace: cloudvault
+spec:
+  parentRefs:
+  - name: cloudvault-gateway
+
+  hostnames:
+  - cloudvault.digital
+
+  rules:
+  # All traffic -> CloudVault
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: cloudvault
+      port: 80
+---
+# =========================================================
+# HEALTH CHECK POLICY - CloudVault
+# =========================================================
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: cloudvault-health-policy
+  namespace: cloudvault
+spec:
+  default:
+    config:
+      type: HTTP
+      httpHealthCheck:
+        requestPath: /api/health
+        port: 3001
+        portSpecification: USE_FIXED_PORT
+  targetRef:
+    group: ""
+    kind: Service
+    name: cloudvault
+---
+# =========================================================
+# BACKEND TIMEOUT POLICY - CloudVault
+# =========================================================
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: cloudvault-backend-timeout
+  namespace: cloudvault
+spec:
+  default:
+    timeoutSec: 300
+  targetRef:
+    group: ""
+    kind: Service
+    name: cloudvault
