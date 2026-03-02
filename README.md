@@ -1,35 +1,52 @@
-# CloudVault - Multi-Cloud Storage Uploader
+# CloudVault - Multi-Cloud Storage Manager
 
-Enterprise-grade web application for uploading files to multiple cloud storage providers (GCP, AWS, Azure, Oracle, S3-compatible) with **admin-controlled access management**.
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudvault)](https://artifacthub.io/packages/search?repo=cloudvault)
+[![Docker](https://img.shields.io/docker/v/shyamkrishna21/cloudvault?label=Docker%20Hub&sort=semver)](https://hub.docker.com/r/shyamkrishna21/cloudvault)
+
+Self-hosted multi-cloud storage manager with granular permissions, resumable uploads, and cost analytics. Supports **GCP, AWS, Azure, Oracle Cloud, and S3-compatible** providers.
 
 ## Features
 
 - **Multi-Cloud Support**: GCP Cloud Storage, AWS S3, Azure Blob, Oracle Cloud, S3-Compatible (MinIO, Wasabi, etc.)
-- **Admin Dashboard**: Manage users, providers, permissions, and view upload logs
-- **User Access Control**: Assign users to specific providers and buckets
-- **Secure Uploads**: Direct uploads via signed URLs (supports 10TB+ files)
-- **Upload History**: Track all uploads with filtering, export to Excel
-- **Modern UI**: Dark/light theme, responsive design
+- **Resumable Uploads**: Large file uploads (100MB+) survive network interruptions
+- **Concurrent Uploads**: Upload multiple files simultaneously with per-upload tracking
+- **Background Jobs**: Dismiss uploads to background, start new ones — real-time progress on all
+- **Admin Dashboard**: Manage users, providers, permissions, and view upload/download logs
+- **Granular Permissions**: Per-user, per-bucket permissions (view, upload, download, delete, share, edit)
+- **Permission Groups**: Bulk-assign permissions to user groups
+- **File Browser**: Browse, download, delete, and manage files in connected buckets
+- **File Sharing**: Generate expiring share links with optional password protection
+- **Cost Analytics**: Storage size tracking, historical graphs, cost estimation
+- **Modern UI**: Dark/light theme, responsive design, real-time progress
 
 ## Security
 
-- Cloud provider credentials encrypted in database (AES-256)
+- Cloud provider credentials encrypted at rest (AES-256)
+- Encryption key persisted in database — survives pod restarts
 - Passwords hashed with bcrypt
 - JWT session tokens
-- Rate limiting on API
-- Non-root Docker container
-- Kubernetes security contexts
+- Rate limiting on all API endpoints
+- Security headers (CSP, X-Frame-Options, HSTS)
+- Non-root Docker container with dropped capabilities
 
 ## Quick Start
+
+### Docker Compose (Easiest)
+
+```bash
+docker-compose up -d
+# Open http://localhost:3001
+```
+
+### Manual Setup
 
 1. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Start PostgreSQL** (required)
+2. **Start PostgreSQL**
    ```bash
-   # Using Docker
    docker run -d --name cloudvault-db \
      -e POSTGRES_DB=cloudvault \
      -e POSTGRES_USER=cloudvault \
@@ -52,14 +69,9 @@ Enterprise-grade web application for uploading files to multiple cloud storage p
    - Frontend: http://localhost:5173
    - Backend: http://localhost:3001
 
-5. **Login as admin**
-   - Username: `admin`
-   - Password: `admin` (or your `ADMIN_PASSWORD`)
+5. **Login as admin** → Username: `admin` / Password: `admin`
 
-6. **Add cloud providers**
-   - Go to Admin → Providers → Add Provider
-   - Select your cloud (GCP, AWS, Azure, etc.)
-   - Enter credentials and test connection
+6. **Add cloud providers** → Admin → Providers → Add Provider
 
 ## Environment Variables
 
@@ -69,199 +81,137 @@ Enterprise-grade web application for uploading files to multiple cloud storage p
 | `PORT` | Server port | No (default: 3001) |
 | `JWT_SECRET` | Secret for JWT tokens | No (auto-generated) |
 | `ADMIN_PASSWORD` | Initial admin password | No (default: admin) |
-| `ENCRYPTION_KEY` | Key for encrypting credentials | No (derived from JWT_SECRET) |
+| `ENCRYPTION_KEY` | 64-char hex key for credential encryption | No (auto-generated) |
 
 ## Docker
 
 ```bash
-# Create a network
-docker network create cloudvault-net
+docker pull shyamkrishna21/cloudvault:v1.0.0
+```
 
-# Run PostgreSQL
-docker run -d \
-  --name cloudvault-db \
-  --network cloudvault-net \
-  -e POSTGRES_DB=cloudvault \
-  -e POSTGRES_USER=cloudvault \
-  -e POSTGRES_PASSWORD=secure-db-password \
-  -v cloudvault-pgdata:/var/lib/postgresql/data \
-  postgres:16-alpine
+Multi-arch image supporting `linux/amd64` and `linux/arm64`.
 
-# Build the app
-docker build -t cloudvault:latest .
-
-# Run the app
+```bash
 docker run -d \
   --name cloudvault \
-  --network cloudvault-net \
   -p 3001:3001 \
-  -e DATABASE_URL=postgresql://cloudvault:secure-db-password@cloudvault-db:5432/cloudvault \
+  -e DATABASE_URL=postgresql://user:pass@db-host:5432/cloudvault \
   -e JWT_SECRET=$(openssl rand -hex 32) \
   -e ADMIN_PASSWORD=secure-password \
-  cloudvault:latest
-
-# Open http://localhost:3001
+  shyamkrishna21/cloudvault:v1.0.0
 ```
 
-## Kubernetes Deployment
+## Helm Chart (Kubernetes)
 
-### 1. Generate secrets
+### Install
+
 ```bash
-# Generate random secrets
-JWT_SECRET=$(openssl rand -hex 32)
-ENCRYPTION_KEY=$(openssl rand -hex 32)
+# Add the Helm repo
+helm repo add cloudvault https://implyfree.github.io/cloudvault
+helm repo update
 
-echo "JWT_SECRET: $JWT_SECRET"
-echo "ENCRYPTION_KEY: $ENCRYPTION_KEY"
+# Install with bundled PostgreSQL
+helm install cloudvault cloudvault/cloudvault \
+  --namespace cloudvault \
+  --create-namespace
+
+# Or install from source
+helm install cloudvault ./helm/cloudvault \
+  --namespace cloudvault \
+  --create-namespace
 ```
 
-### 2. Update k8s/secret.yaml
-Edit `k8s/secret.yaml` and replace placeholder values with your generated secrets.
+### What Helm Does Automatically
 
-### 3. Build and push image
+- **Waits for PostgreSQL** to be ready (init container)
+- **Runs database migrations** via `db-migrate` init container (idempotent)
+- **Auto-generates secrets** (JWT_SECRET, ENCRYPTION_KEY) on first install
+- **Preserves secrets** across `helm upgrade` (uses `lookup` + `helm.sh/resource-policy: keep`)
+- **Creates PodDisruptionBudget** for high availability
+- **Sets up HPA** (2-10 replicas based on CPU/memory)
+
+### Production Values
+
 ```bash
-# Build
-docker build -t your-registry/cloudvault:latest .
-
-# Push to your registry
-docker push your-registry/cloudvault:latest
+helm install cloudvault cloudvault/cloudvault \
+  --namespace cloudvault \
+  --create-namespace \
+  --set app.adminPassword=secure-password \
+  --set app.jwtSecret=$(openssl rand -hex 32) \
+  --set app.encryptionKey=$(openssl rand -hex 32) \
+  --set postgresql.auth.password=secure-db-password
 ```
 
-### 4. Update deployment
-Edit `k8s/deployment.yaml` and set your image:
-```yaml
-image: your-registry/cloudvault:latest
-```
-
-### 5. Deploy
-```bash
-# Using kustomize (recommended)
-kubectl apply -k k8s/
-
-# Or apply individually
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/secret.yaml
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/pvc.yaml
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-```
-
-### 6. Access the application
-```bash
-# Port forward for local access
-kubectl -n bucket-uploader port-forward svc/bucket-uploader 8080:80
-
-# Open http://localhost:8080
-```
-
-### Kubernetes Files
+### Kubernetes Files (raw manifests)
 
 | File | Description |
 |------|-------------|
-| `k8s/namespace.yaml` | Creates the `bucket-uploader` namespace |
+| `k8s/namespace.yaml` | Creates the `cloudvault` namespace |
 | `k8s/secret.yaml` | JWT secret, encryption key, admin password |
 | `k8s/configmap.yaml` | Non-sensitive configuration |
-| `k8s/postgres.yaml` | PostgreSQL database with RWO PVC |
+| `k8s/postgres.yaml` | PostgreSQL database with PVC |
 | `k8s/deployment.yaml` | Main deployment with health checks |
-| `k8s/service.yaml` | ClusterIP service (+ optional Ingress) |
-| `k8s/kustomization.yaml` | Kustomize config for easy deployment |
-
-### Production Checklist
-
-- [ ] Generate strong `JWT_SECRET` and `ENCRYPTION_KEY`
-- [ ] Set a secure `ADMIN_PASSWORD`
-- [ ] Push Docker image to your private registry
-- [ ] Configure Ingress for external access
-- [ ] Set up TLS/HTTPS
-- [ ] Configure backup for PostgreSQL (pg_dump or managed DB snapshots)
-- [ ] Consider external database (PostgreSQL) for high availability
+| `k8s/service.yaml` | ClusterIP service |
+| `k8s/gateway.yaml` | GKE Gateway API (optional) |
+| `k8s/hpa.yaml` | Horizontal Pod Autoscaler |
 
 ## Adding Cloud Providers
 
-After deployment, add cloud providers through the Admin UI:
+After deployment, add providers through the Admin UI:
 
-### Google Cloud Storage (GCP)
-- Create a service account with Storage Admin role
-- Download JSON key
-- Paste the entire JSON in the "Service Account JSON" field
-
-### Amazon S3 (AWS)
-- Create IAM user with S3 access
-- Generate access keys
-- Enter Access Key ID, Secret Access Key, and Region
-
-### Azure Blob Storage
-- Get Storage Account name and Access Key from Azure Portal
-- Enter both in the provider configuration
-
-### Oracle Cloud Object Storage
-- Get tenancy OCID, user OCID, fingerprint, and private key
-- Enter namespace and region
-
-### S3-Compatible (MinIO, Wasabi, etc.)
-- Enter endpoint URL, access key, secret key
-- Enable "Force Path Style" if required
+| Provider | Credentials Required |
+|----------|---------------------|
+| **GCP** | Service Account JSON key |
+| **AWS S3** | Access Key ID + Secret Access Key + Region |
+| **Azure Blob** | Storage Account name + Access Key |
+| **Oracle Cloud** | Tenancy OCID, User OCID, Fingerprint, Private Key |
+| **S3-Compatible** | Endpoint URL + Access Key + Secret Key |
 
 ## Architecture
 
-### Upload Flow (Zero Load on Your Servers!)
+### Upload Flow (Zero Server Load)
 ```
 ┌──────────┐  1. Get signed URL (~1KB)  ┌──────────┐
 │  Browser │ ────────────────────────▶  │   Pod    │
 └──────────┘                            └──────────┘
      │                                       │
-     │                                       │ 2. Log to DB (~500 bytes)
+     │                                       │ 2. Log to DB
      │                                       ▼
      │                              ┌──────────────────┐
      │                              │   PostgreSQL     │
      │                              └──────────────────┘
      │
-     │  3. Upload file DIRECTLY to cloud (bypasses your infrastructure!)
+     │  3. Upload DIRECTLY to cloud (bypasses your infra!)
      │
      └──────────────────────────────────────────────────▶  ☁️ Cloud Storage
 ```
 
-**For a 1TB upload, your pods only handle ~1KB of data!**
+**For a 1TB upload, your pods only handle ~1KB of metadata!**
 
-### Kubernetes (PostgreSQL + HPA)
+### Kubernetes Architecture
 ```
                     ┌─────────────────┐
-                    │     Ingress     │
-                    │   (optional)    │
+                    │  Gateway/Ingress│
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
                     │     Service     │
-                    │   (ClusterIP)   │
                     └────────┬────────┘
                              │
          ┌───────────────────┼───────────────────┐
          │                   │                   │
     ┌────▼────┐        ┌────▼────┐        ┌────▼────┐
-    │  Pod 1  │        │  Pod 2  │        │  Pod N  │
-    │  (App)  │        │  (App)  │   ...  │  (App)  │
+    │  Pod 1  │        │  Pod 2  │   ...  │  Pod N  │
     └────┬────┘        └────┬────┘        └────┬────┘
-         │                   │                   │
          └───────────────────┼───────────────────┘
                              │
                     ┌────────▼────────┐
                     │   PostgreSQL    │
-                    │   (RWO PVC)     │
                     └─────────────────┘
 
     HPA: 2-10 replicas based on CPU/Memory
+    PDB: minAvailable=1 for zero-downtime upgrades
 ```
-
-## Scalability
-
-| Component | Scalable | Details |
-|-----------|----------|---------|
-| App Pods | ✅ Yes | Stateless, scales 2-10 via HPA |
-| PostgreSQL | ✅ Yes* | Single instance, can upgrade to managed DB |
-| Uploads | ✅ Yes | Direct to cloud via signed URLs |
-
-*For high availability, consider managed PostgreSQL (Cloud SQL, RDS, Azure Database).
 
 ## License
 
