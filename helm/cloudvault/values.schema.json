@@ -1,0 +1,333 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "replicaCount": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 2,
+            "description": "Number of CloudVault replicas"
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "string",
+                    "default": "shyamkrishna21/cloudvault",
+                    "description": "Docker image repository"
+                },
+                "tag": {
+                    "type": "string",
+                    "default": "v1.0.0",
+                    "description": "Docker image tag"
+                },
+                "pullPolicy": {
+                    "type": "string",
+                    "enum": [
+                        "Always",
+                        "IfNotPresent",
+                        "Never"
+                    ],
+                    "default": "IfNotPresent",
+                    "description": "Image pull policy"
+                }
+            }
+        },
+        "imagePullSecrets": {
+            "type": "array",
+            "default": [],
+            "description": "Image pull secrets for private registries"
+        },
+        "nameOverride": {
+            "type": "string",
+            "default": "",
+            "description": "Override chart name"
+        },
+        "fullnameOverride": {
+            "type": "string",
+            "default": "",
+            "description": "Override full release name"
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Create a service account"
+                },
+                "annotations": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Service account annotations (e.g. for GKE Workload Identity)"
+                },
+                "name": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Service account name (auto-generated if empty)"
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                    ],
+                    "default": "ClusterIP",
+                    "description": "Kubernetes service type"
+                },
+                "port": {
+                    "type": "integer",
+                    "default": 80,
+                    "description": "Service port"
+                },
+                "targetPort": {
+                    "type": "integer",
+                    "default": 3001,
+                    "description": "Container target port"
+                }
+            }
+        },
+        "ingress": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable Ingress resource"
+                },
+                "className": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Ingress class name"
+                },
+                "annotations": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Ingress annotations"
+                },
+                "hosts": {
+                    "type": "array",
+                    "description": "Ingress host rules"
+                },
+                "tls": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Ingress TLS configuration"
+                }
+            }
+        },
+        "resources": {
+            "type": "object",
+            "description": "CPU/memory resource requests and limits",
+            "properties": {
+                "requests": {
+                    "type": "object",
+                    "properties": {
+                        "memory": {
+                            "type": "string",
+                            "default": "128Mi"
+                        },
+                        "cpu": {
+                            "type": "string",
+                            "default": "100m"
+                        }
+                    }
+                },
+                "limits": {
+                    "type": "object",
+                    "properties": {
+                        "memory": {
+                            "type": "string",
+                            "default": "512Mi"
+                        },
+                        "cpu": {
+                            "type": "string",
+                            "default": "500m"
+                        }
+                    }
+                }
+            }
+        },
+        "autoscaling": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable Horizontal Pod Autoscaler"
+                },
+                "minReplicas": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Minimum replicas"
+                },
+                "maxReplicas": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Maximum replicas"
+                },
+                "targetCPUUtilizationPercentage": {
+                    "type": "integer",
+                    "default": 70,
+                    "description": "Target CPU utilization for autoscaling"
+                },
+                "targetMemoryUtilizationPercentage": {
+                    "type": "integer",
+                    "default": 80,
+                    "description": "Target memory utilization for autoscaling"
+                }
+            }
+        },
+        "podDisruptionBudget": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable PodDisruptionBudget"
+                },
+                "minAvailable": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Minimum available pods during disruptions"
+                }
+            }
+        },
+        "app": {
+            "type": "object",
+            "description": "Application configuration",
+            "properties": {
+                "adminUsername": {
+                    "type": "string",
+                    "default": "admin",
+                    "description": "Initial admin username"
+                },
+                "adminPassword": {
+                    "type": "string",
+                    "default": "admin",
+                    "description": "Initial admin password (change in production!)"
+                },
+                "jwtSecret": {
+                    "type": "string",
+                    "default": "",
+                    "description": "JWT secret for sessions. Auto-generated and preserved across upgrades if empty."
+                },
+                "encryptionKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "64-char hex key for encrypting cloud credentials. Auto-generated and preserved across upgrades if empty."
+                }
+            }
+        },
+        "postgresql": {
+            "type": "object",
+            "description": "Bundled PostgreSQL (Bitnami) configuration",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Deploy bundled PostgreSQL. Set false to use an external database."
+                },
+                "auth": {
+                    "type": "object",
+                    "properties": {
+                        "username": {
+                            "type": "string",
+                            "default": "cloudvault",
+                            "description": "PostgreSQL username"
+                        },
+                        "password": {
+                            "type": "string",
+                            "default": "cloudvault-db-password",
+                            "description": "PostgreSQL password"
+                        },
+                        "database": {
+                            "type": "string",
+                            "default": "cloudvault",
+                            "description": "PostgreSQL database name"
+                        }
+                    }
+                },
+                "architecture": {
+                    "type": "string",
+                    "enum": [
+                        "standalone",
+                        "replication"
+                    ],
+                    "default": "standalone",
+                    "description": "PostgreSQL architecture"
+                }
+            }
+        },
+        "externalDatabase": {
+            "type": "object",
+            "description": "External database config (when postgresql.enabled=false)",
+            "properties": {
+                "host": {
+                    "type": "string",
+                    "default": "",
+                    "description": "External PostgreSQL host"
+                },
+                "port": {
+                    "type": "integer",
+                    "default": 5432,
+                    "description": "External PostgreSQL port"
+                },
+                "username": {
+                    "type": "string",
+                    "default": "cloudvault"
+                },
+                "password": {
+                    "type": "string",
+                    "default": ""
+                },
+                "database": {
+                    "type": "string",
+                    "default": "cloudvault"
+                },
+                "existingSecret": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Name of existing secret containing DATABASE_URL"
+                }
+            }
+        },
+        "gateway": {
+            "type": "object",
+            "description": "GKE Gateway API configuration",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable GKE Gateway resources"
+                },
+                "className": {
+                    "type": "string",
+                    "default": "gke-l7-global-external-managed",
+                    "description": "Gateway class name"
+                },
+                "hostname": {
+                    "type": "string",
+                    "default": "cloudvault.example.com",
+                    "description": "Hostname for the application"
+                },
+                "tlsSecretName": {
+                    "type": "string",
+                    "default": "cloudvault-tls",
+                    "description": "TLS certificate secret name"
+                },
+                "timeoutSec": {
+                    "type": "integer",
+                    "default": 300,
+                    "description": "Backend timeout in seconds"
+                }
+            }
+        }
+    }
+}

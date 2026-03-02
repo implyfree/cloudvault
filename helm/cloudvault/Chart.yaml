@@ -11,11 +11,49 @@ keywords:
   - aws
   - azure
   - s3
+  - multi-cloud
+  - storage-manager
+  - kubernetes
 maintainers:
   - name: shyamkrishna21
-home: https://github.com/shyamkrishna21/cloudvault
+    email: shyam21091996@gmail.com
+home: https://github.com/implyfree/cloudvault
 sources:
-  - https://github.com/shyamkrishna21/cloudvault
+  - https://github.com/implyfree/cloudvault
+icon: https://raw.githubusercontent.com/implyfree/cloudvault/main/public/favicon.svg
+annotations:
+  artifacthub.io/official: "true"
+  artifacthub.io/license: MIT
+  artifacthub.io/links: |
+    - name: Docker Hub
+      url: https://hub.docker.com/r/shyamkrishna21/cloudvault
+    - name: Source
+      url: https://github.com/implyfree/cloudvault
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release with multi-cloud support (GCP, AWS, Azure, OCI, S3-compatible)
+    - kind: added
+      description: Resumable uploads for large files
+    - kind: added
+      description: Concurrent upload tracking with per-upload progress
+    - kind: added
+      description: Granular per-user per-bucket permissions
+    - kind: added
+      description: File sharing with expiring links
+    - kind: added
+      description: Cost analytics and storage tracking
+    - kind: added
+      description: Database migrations via init container
+    - kind: added
+      description: Secret preservation across helm upgrades
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/images: |
+    - name: cloudvault
+      image: shyamkrishna21/cloudvault:v1.0.0
+      platforms:
+        - linux/amd64
+        - linux/arm64
 
 dependencies:
   - name: postgresql
