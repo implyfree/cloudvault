@@ -50,7 +50,7 @@ annotations:
   artifacthub.io/prerelease: "false"
   artifacthub.io/images: |
     - name: cloudvault
-      image: shyamkrishna21/cloudvault:v1.0.1
+      image: shyamkrishna21/cloudvault:latest
       platforms:
         - linux/amd64
         - linux/arm64
