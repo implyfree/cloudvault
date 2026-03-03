@@ -2,8 +2,8 @@ apiVersion: v2
 name: cloudvault
 description: Multi-cloud storage uploader with admin-controlled access management
 type: application
-version: 1.0.1
-appVersion: "1.0.1"
+version: 1.0.2
+appVersion: "1.0.2"
 keywords:
   - cloud-storage
   - file-upload
@@ -55,8 +55,3 @@ annotations:
         - linux/amd64
         - linux/arm64
 
-dependencies:
-  - name: postgresql
-    version: "18.4.1"
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    condition: postgresql.enabled

@@ -124,6 +124,12 @@ app:
 postgresql:
   enabled: true
   
+  # Official PostgreSQL image (not Bitnami)
+  image:
+    repository: postgres
+    tag: "18.3-alpine"
+    pullPolicy: IfNotPresent
+  
   # Authentication
   auth:
     username: cloudvault

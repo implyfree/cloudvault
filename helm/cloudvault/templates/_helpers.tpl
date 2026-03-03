@@ -64,7 +64,7 @@ Get PostgreSQL host
 */}}
 {{- define "cloudvault.postgresql.host" -}}
 {{- if .Values.postgresql.enabled }}
-{{- printf "%s-postgresql" .Release.Name }}
+{{- printf "%s-postgresql" (include "cloudvault.fullname" .) }}
 {{- else }}
 {{- .Values.externalDatabase.host }}
 {{- end }}
@@ -108,7 +108,7 @@ Get PostgreSQL secret name
 */}}
 {{- define "cloudvault.postgresql.secretName" -}}
 {{- if .Values.postgresql.enabled }}
-{{- printf "%s-postgresql" .Release.Name }}
+{{- printf "%s-postgresql" (include "cloudvault.fullname" .) }}
 {{- else if .Values.externalDatabase.existingSecret }}
 {{- .Values.externalDatabase.existingSecret }}
 {{- else }}
@@ -121,7 +121,7 @@ Get PostgreSQL password key in secret
 */}}
 {{- define "cloudvault.postgresql.passwordKey" -}}
 {{- if .Values.postgresql.enabled }}
-{{- printf "password" }}
+{{- printf "POSTGRES_PASSWORD" }}
 {{- else if .Values.externalDatabase.existingSecret }}
 {{- .Values.externalDatabase.existingSecretKey }}
 {{- else }}
