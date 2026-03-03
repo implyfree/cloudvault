@@ -2,6 +2,10 @@
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudvault)](https://artifacthub.io/packages/search?repo=cloudvault)
 [![Docker](https://img.shields.io/docker/v/shyamkrishna21/cloudvault?label=Docker%20Hub&sort=semver)](https://hub.docker.com/r/shyamkrishna21/cloudvault)
+[![Docker Pulls](https://img.shields.io/docker/pulls/shyamkrishna21/cloudvault)](https://hub.docker.com/r/shyamkrishna21/cloudvault)
+[![GitHub Release](https://img.shields.io/github/v/release/implyfree/cloudvault?label=Release)](https://github.com/implyfree/cloudvault/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/Docs-GitHub%20Pages-blue?logo=github)](https://implyfree.github.io/cloudvault)
 
 Self-hosted multi-cloud storage manager with granular permissions, resumable uploads, and cost analytics. Supports **GCP, AWS, Azure, Oracle Cloud, and S3-compatible** providers.
 

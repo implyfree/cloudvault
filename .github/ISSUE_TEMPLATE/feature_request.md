@@ -1,16 +1,22 @@
 ---
 name: Feature Request
-about: Suggest an idea for CloudVault
-title: '[Feature] '
+about: Suggest a new feature for CloudVault
+title: "[FEATURE] "
 labels: enhancement
-assignees: ''
+assignees: shyamkrishna21
 ---
 
-**What would you like?**
-A clear description of the feature.
+## Feature Description
+A clear description of the feature you'd like.
 
-**Why is this useful?**
-Explain the use case.
+## Problem It Solves
+What problem does this feature address?
 
-**Any ideas on implementation?**
-Optional — describe how you'd approach it.
+## Proposed Solution
+How would you like it to work?
+
+## Alternatives Considered
+Any alternative solutions or workarounds you've considered.
+
+## Additional Context
+Add any other context, screenshots, or mockups.

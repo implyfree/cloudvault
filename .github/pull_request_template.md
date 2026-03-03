@@ -1,21 +1,35 @@
-## What does this PR do?
+## Description
 
-<!-- Brief description of the change -->
+Brief description of the changes in this PR.
 
-## Why?
+## Type of Change
 
-<!-- Why is this change needed? Link to issue if applicable -->
-Fixes #
+- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [ ] ✨ New feature (non-breaking change that adds functionality)
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to change)
+- [ ] 📚 Documentation update
+- [ ] 🔧 Maintenance / refactor
 
-## How to test
+## Changes Made
 
-<!-- Steps to verify this works -->
+- Change 1
+- Change 2
 
-1. ...
-2. ...
+## Testing
+
+- [ ] Application builds successfully (`npm run build`)
+- [ ] Application runs without errors
+- [ ] Docker build works (`docker compose up --build`)
+- [ ] Tested in browser (UI works correctly)
+- [ ] API endpoints work as expected
+- [ ] Upload/download functionality tested
+- [ ] Permissions and access control verified
+
+## Screenshots (if applicable)
 
 ## Checklist
 
-- [ ] App builds successfully (`npm run build`)
-- [ ] Tested locally
-- [ ] No secrets or credentials committed
+- [ ] My code follows the project's code style
+- [ ] I have updated documentation if needed
+- [ ] I have read the [CONTRIBUTING](CONTRIBUTING.md) guidelines
+- [ ] My branch is up to date with `main`
