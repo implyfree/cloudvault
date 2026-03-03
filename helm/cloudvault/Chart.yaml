@@ -2,8 +2,8 @@ apiVersion: v2
 name: cloudvault
 description: Multi-cloud storage uploader with admin-controlled access management
 type: application
-version: 1.0.0
-appVersion: "1.0.0"
+version: 1.0.1
+appVersion: "1.0.1"
 keywords:
   - cloud-storage
   - file-upload
@@ -50,13 +50,13 @@ annotations:
   artifacthub.io/prerelease: "false"
   artifacthub.io/images: |
     - name: cloudvault
-      image: shyamkrishna21/cloudvault:v1.0.0
+      image: shyamkrishna21/cloudvault:v1.0.1
       platforms:
         - linux/amd64
         - linux/arm64
 
 dependencies:
   - name: postgresql
-    version: "16.4.1"
+    version: "18.4.1"
     repository: "oci://registry-1.docker.io/bitnamicharts"
     condition: postgresql.enabled
