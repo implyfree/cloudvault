@@ -1,38 +1,36 @@
 # CloudVault Helm Chart
 
-Multi-cloud storage uploader with admin-controlled access management.
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudvault)](https://artifacthub.io/packages/helm/cloudvault/cloudvault)
 
-## Prerequisites
+Self-hosted multi-cloud storage manager with granular permissions, resumable uploads, and cost analytics.
 
-- Kubernetes 1.23+
-- Helm 3.8+
-- PV provisioner support (for PostgreSQL persistence)
-
-## Installation
-
-### Quick Install
+## Quick Install
 
 ```bash
-# Add dependencies
-cd helm/cloudvault
-helm dependency update
+helm repo add cloudvault https://implyfree.github.io/cloudvault
+helm repo update
 
-# Install
-helm install cloudvault . -n cloudvault --create-namespace
+helm install cloudvault cloudvault/cloudvault -n cloudvault --create-namespace
 ```
 
-### Install with Custom Values
+Or install from source:
 
 ```bash
-helm install cloudvault . -n cloudvault --create-namespace \
+helm install cloudvault ./helm/cloudvault -n cloudvault --create-namespace
+```
+
+## Install with Custom Values
+
+```bash
+helm install cloudvault cloudvault/cloudvault -n cloudvault --create-namespace \
   --set app.adminPassword=your-secure-password \
   --set postgresql.auth.password=your-db-password
 ```
 
-### Install with Ingress
+## Install with Ingress
 
 ```bash
-helm install cloudvault . -n cloudvault --create-namespace \
+helm install cloudvault cloudvault/cloudvault -n cloudvault --create-namespace \
   --set ingress.enabled=true \
   --set ingress.hosts[0].host=cloudvault.example.com \
   --set ingress.hosts[0].paths[0].path=/ \
@@ -65,20 +63,22 @@ kubectl -n cloudvault port-forward svc/cloudvault 8080:80
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Image repository | `shyamkrishna21/cloudvault` |
-| `image.tag` | Image tag | `1.0.0` |
+| `image.tag` | Image tag | `latest` |
 | `image.pullPolicy` | Pull policy | `IfNotPresent` |
 
-### PostgreSQL Settings (Bitnami)
+### PostgreSQL Settings (Official Image)
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `postgresql.enabled` | Enable bundled PostgreSQL | `true` |
+| `postgresql.image.repository` | PostgreSQL image | `postgres` |
+| `postgresql.image.tag` | PostgreSQL version | `18.3-alpine` |
 | `postgresql.auth.username` | Database username | `cloudvault` |
 | `postgresql.auth.password` | Database password | `cloudvault-db-password` |
 | `postgresql.auth.database` | Database name | `cloudvault` |
 | `postgresql.primary.persistence.size` | PVC size | `5Gi` |
 
-### External Database (if postgresql.enabled=false)
+### External Database (if `postgresql.enabled=false`)
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
@@ -109,7 +109,7 @@ kubectl -n cloudvault port-forward svc/cloudvault 8080:80
 ## Upgrading
 
 ```bash
-helm upgrade cloudvault . -n cloudvault
+helm upgrade cloudvault cloudvault/cloudvault -n cloudvault
 ```
 
 ## Uninstalling
@@ -118,18 +118,15 @@ helm upgrade cloudvault . -n cloudvault
 helm uninstall cloudvault -n cloudvault
 ```
 
-**Note:** This will not delete the PVC. To fully clean up:
-
-```bash
-kubectl delete pvc -n cloudvault -l app.kubernetes.io/instance=cloudvault
-```
+> **Note:** This will not delete the PVC. To fully clean up:
+> ```bash
+> kubectl delete pvc -n cloudvault -l app.kubernetes.io/instance=cloudvault
+> ```
 
 ## Using External PostgreSQL
 
-To use an external PostgreSQL database:
-
 ```bash
-helm install cloudvault . -n cloudvault --create-namespace \
+helm install cloudvault cloudvault/cloudvault -n cloudvault --create-namespace \
   --set postgresql.enabled=false \
   --set externalDatabase.host=your-postgres-host \
   --set externalDatabase.password=your-password
