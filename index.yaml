@@ -36,9 +36,9 @@ entries:
       artifacthub.io/prerelease: "false"
     apiVersion: v2
     appVersion: 1.0.2
-    created: "2026-03-03T11:23:26.237154+05:30"
+    created: "2026-03-03T11:28:02.092647+05:30"
     description: Multi-cloud storage uploader with admin-controlled access management
-    digest: 0ec51148f0cb4446e3a4bc7562f90b85bddf5421a2b3301ca590601b55b3666e
+    digest: 7a5feaed61c448cda1c574688e23a43a163e9c40b645dbfb3830e5e74280c65e
     home: https://github.com/implyfree/cloudvault
     icon: https://raw.githubusercontent.com/implyfree/cloudvault/main/public/favicon.svg
     keywords:
@@ -61,4 +61,4 @@ entries:
     urls:
     - https://implyfree.github.io/cloudvault/cloudvault-1.0.2.tgz
     version: 1.0.2
-generated: "2026-03-03T11:23:26.235039+05:30"
+generated: "2026-03-03T11:28:02.091291+05:30"
