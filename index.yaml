@@ -22,7 +22,7 @@ entries:
       artifacthub.io/containsSecurityUpdates: "false"
       artifacthub.io/images: |
         - name: cloudvault
-          image: shyamkrishna21/cloudvault:v1.0.0
+          image: shyamkrishna21/cloudvault:v1.0.1
           platforms:
             - linux/amd64
             - linux/arm64
@@ -35,15 +35,15 @@ entries:
       artifacthub.io/official: "true"
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    appVersion: 1.0.0
-    created: "2026-03-03T00:10:03.508188+05:30"
+    appVersion: 1.0.1
+    created: "2026-03-03T10:41:18.664457+05:30"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
       repository: oci://registry-1.docker.io/bitnamicharts
-      version: 16.4.1
+      version: 18.4.1
     description: Multi-cloud storage uploader with admin-controlled access management
-    digest: cc4c75b8ab4d30cbbf451f1e7ec977f10aa229fa2a233a635d4de2f0eb765b92
+    digest: 5051d8d728364bb093682ac653bda02b6ac5206f4c10df8c24bb97bd30111625
     home: https://github.com/implyfree/cloudvault
     icon: https://raw.githubusercontent.com/implyfree/cloudvault/main/public/favicon.svg
     keywords:
@@ -64,6 +64,6 @@ entries:
     - https://github.com/implyfree/cloudvault
     type: application
     urls:
-    - https://implyfree.github.io/cloudvault/cloudvault-1.0.0.tgz
-    version: 1.0.0
-generated: "2026-03-03T00:10:03.503298+05:30"
+    - https://implyfree.github.io/cloudvault/cloudvault-1.0.1.tgz
+    version: 1.0.1
+generated: "2026-03-03T10:41:18.657835+05:30"
