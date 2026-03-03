@@ -22,7 +22,7 @@ entries:
       artifacthub.io/containsSecurityUpdates: "false"
       artifacthub.io/images: |
         - name: cloudvault
-          image: shyamkrishna21/cloudvault:v1.0.1
+          image: shyamkrishna21/cloudvault:latest
           platforms:
             - linux/amd64
             - linux/arm64
@@ -36,9 +36,9 @@ entries:
       artifacthub.io/prerelease: "false"
     apiVersion: v2
     appVersion: 1.0.2
-    created: "2026-03-03T11:28:02.092647+05:30"
+    created: "2026-03-03T11:58:08.409973+05:30"
     description: Multi-cloud storage uploader with admin-controlled access management
-    digest: 7a5feaed61c448cda1c574688e23a43a163e9c40b645dbfb3830e5e74280c65e
+    digest: 542f85ae8c4f2a0dc17e0754bab86c5d6d100b96d5dcc02b7c4c96313424ede0
     home: https://github.com/implyfree/cloudvault
     icon: https://raw.githubusercontent.com/implyfree/cloudvault/main/public/favicon.svg
     keywords:
@@ -61,4 +61,4 @@ entries:
     urls:
     - https://implyfree.github.io/cloudvault/cloudvault-1.0.2.tgz
     version: 1.0.2
-generated: "2026-03-03T11:28:02.091291+05:30"
+generated: "2026-03-03T11:58:08.408643+05:30"
